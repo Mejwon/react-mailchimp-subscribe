@@ -1,10 +1,10 @@
-import React from "react";
-import PropTypes from "prop-types";
-import jsonp from "jsonp";
-import toQueryString from "to-querystring";
-import SimpleForm from "./SimpleForm";
+import React from 'react';
+import PropTypes from 'prop-types';
+import jsonp from 'jsonp';
+import toQueryString from 'to-querystring';
+import SimpleForm from './SimpleForm';
 
-const getAjaxUrl = url => url.replace("/post?", "/post-json?");
+const getAjaxUrl = url => url.replace('/post?', '/post-json?');
 
 class MailchimpSubscribe extends React.Component {
   state = {
@@ -13,32 +13,48 @@ class MailchimpSubscribe extends React.Component {
   };
   subscribe = data => {
     const params = toQueryString(data);
-    const url = getAjaxUrl(this.props.url) + "&" + params;
+    const url = getAjaxUrl(this.props.url) + '&' + params;
     this.setState(
       {
-        status: "sending",
+        status: 'sending',
         message: null
       },
       () =>
         jsonp(
           url,
           {
-            param: "c"
+            param: 'c'
           },
           (err, data) => {
             if (err) {
               this.setState({
-                status: "error",
+                status: 'error',
                 message: err
               });
-            } else if (data.result !== "success") {
-              this.setState({
-                status: "error",
-                message: data.msg
-              });
+            } else if (data.result !== 'success') {
+              if (data.msg == '0 - Please enter a value') {
+                _this.setState({
+                  status: 'error',
+                  message: 'Pole jest wymagane'
+                });
+              } else if (
+                data.msg === '0 - An email address must contain a single @' ||
+                data.msg ===
+                  '0 - The domain portion of the email address is invalid (the portion after the @: )'
+              ) {
+                _this.setState({
+                  status: 'error',
+                  message: 'Proszę wpisać poprawny email'
+                });
+              } else {
+                _this.setState({
+                  status: 'error',
+                  message: data.msg
+                });
+              }
             } else {
               this.setState({
-                status: "success",
+                status: 'success',
                 message: data.msg
               });
             }
